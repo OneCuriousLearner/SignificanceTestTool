@@ -2,6 +2,8 @@
 
 一个基于 Web 的 CSV 数据显著性分析工具，采用前后端分离架构，使用 Nginx 反向代理提供统一服务入口。
 
+![CSV 数据显著性分析工具](./document/PagePreview.jpeg)
+
 ## ✨ 特性
 
 - 📊 **专业统计分析**：Wilcoxon、t检验、Mann-Whitney U 检验
@@ -129,14 +131,21 @@ app.run(host='0.0.0.0', port=5001, debug=True)
 
 ### 文件上传失败（413 错误）？
 
-Nginx 配置已支持 1024MB 文件上传，如需修改：
+已支持 1024MB 文件上传，如需修改：
+
+编辑 `nginx/nginx.conf` 修改 Nginx 最大文件大小：
 ```nginx
-client_max_body_size 200M;  # 改为更大值
+client_max_body_size 1024M;     # 改为更大值
+```
+
+编辑 `backend/app.py` 修改 Flask 最大文件大小：
+```python
+app.config['MAX_CONTENT_LENGTH'] = 1024 * 1024 * 1024   # 改为更大值
 ```
 
 然后重新加载配置：
 ```bash
-nginx -s reload -c /data/workspace/nginx/nginx.conf
+./start.sh
 ```
 
 ### 前端修改不生效？
