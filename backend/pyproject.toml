@@ -1,0 +1,15 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "CSV数据显著性分析工具后端服务 - 基于Flask的API服务，提供统计分析功能"
+requires-python = ">=3.10"
+dependencies = [
+    "flask>=3.1.2",
+    "flask-cors>=6.0.1",
+    "matplotlib>=3.10.7",
+    "numpy>=2.2.6",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.3",
+    "scipy>=1.15.3",
+    "seaborn>=0.13.2",
+]

@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模型显著性对比报告</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 25px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .info-card {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .info-card strong {
+            color: #2c3e50;
+            font-size: 1.2em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        th {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        tr:hover {
+            background: #e8f4f8;
+        }
+        .best-model {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+        .significant {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .not-significant {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .summary {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            color: #7f8c8d;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+        .emoji {
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="emoji">📊</span> 模型显著性对比报告</h1>
+        
+        <h2><span class="emoji">📊</span> 数据概览</h2>
+        <div class="info-grid">
+            <div class="info-card">
+                <strong>1081</strong><br>样本数量
+            </div>
+            <div class="info-card">
+                <strong>2</strong><br>模型数量
+            </div>
+            <div class="info-card">
+                <strong>wilcoxon</strong><br>统计检验
+            </div>
+            <div class="info-card">
+                <strong>α = 0.05</strong><br>显著性水平
+            </div>
+        </div>
+        
+        <h2><span class="emoji">📈</span> 得分情况</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>模型</th>
+                    <th>样本数</th>
+                    <th>均值(百分制)</th>
+                    <th>标准差</th>
+                    <th>中位数</th>
+                    <th>25%分位数</th>
+                    <th>75%分位数</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>模型-0916-Prompt2Doclist ✅</strong></td>
+                    <td>1081</td>
+                    <td>53.33</td>
+                    <td>0.87</td>
+                    <td>1.00</td>
+                    <td>0.00</td>
+                    <td>2.00</td>
+                </tr>
+                <tr>
+                    <td><strong>模型-0928-Prompt2Doclist</strong></td>
+                    <td>1081</td>
+                    <td>53.42</td>
+                    <td>0.86</td>
+                    <td>1.00</td>
+                    <td>0.00</td>
+                    <td>2.00</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="best-model">
+            <span class="emoji">🏆</span> 最佳模型: <strong>模型-0928-Prompt2Doclist</strong> (平均得分: 53.42)
+        </div>
+        <h2><span class="emoji">🔍</span> 两两模型对比</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>模型1</th>
+                    <th>模型2</th>
+                    <th>模型1均值</th>
+                    <th>模型2均值</th>
+                    <th>均值差异</th>
+                    <th>检验统计量</th>
+                    <th>p值</th>
+                    <th>是否显著</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>模型-0916-Prompt2Doclist ✅</strong></td>
+                    <td><strong>模型-0928-Prompt2Doclist</strong></td>
+                    <td>1.0666</td>
+                    <td>1.0685</td>
+                    <td>-0.0019</td>
+                    <td>39223.5000</td>
+                    <td>0.9702</td>
+                    <td class="not-significant">❌ 否</td>
+                </tr>
+            </tbody>
+        </table>
+        <h3><span class="emoji">📋</span> 显著差异总结</h3>
+        <div class="summary">
+            <p>未发现模型间存在显著差异</p>
+        </div>
+        <h2><span class="emoji">🎯</span> 与基线模型对比</h2>
+        <div class="summary">
+            <p><strong>基线模型</strong>: 模型-0916-Prompt2Doclist</p>
+            <p><em>注：基线模型作为对比基准，其他模型的表现将与此模型进行比较</em></p>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>模型</th>
+                    <th>模型均值</th>
+                    <th>基线均值(模型-0916-Prompt2Doclist)</th>
+                    <th>均值差异</th>
+                    <th>检验统计量</th>
+                    <th>p值</th>
+                    <th>是否显著</th>
+                    <th>优于基线</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>模型-0928-Prompt2Doclist</strong></td>
+                    <td>1.0685</td>
+                    <td>1.0666</td>
+                    <td>0.0019</td>
+                    <td>39223.5000</td>
+                    <td>0.9702</td>
+                    <td class="not-significant">❌ 否</td>
+                    <td class="not-significant">❌ 否</td>
+                </tr>
+            </tbody>
+        </table>
+        <h3><span class="emoji">😔</span> 基线对比结果</h3>
+        <div class="summary">
+            <p>没有模型显著优于基线</p>
+        </div>
+        <h2><span class="emoji">📝</span> 分析总结</h2>
+        <div class="summary">
+            <ul>
+                <li>共进行了 <strong>1</strong> 对模型对比</li>
+                <li>发现 <strong>0</strong> 对模型存在显著差异</li>
+                <li>模型间未发现显著差异，可能需要更多样本或调整评估标准</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>报告生成时间: 2025-10-20 14:52:32</p>
+        </div>
+    </div>
+</body>
+</html>

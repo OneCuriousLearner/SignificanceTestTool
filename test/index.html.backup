@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CSV 数据显著性分析</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f5f7ff 0%, #f1f5f9 100%);
+        font-family: "Alibaba PuHuiTi", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #1f2937;
+      }
+
+      .app-shell {
+        width: min(720px, 92vw);
+        margin: 48px auto;
+      }
+
+      .card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        padding: 40px 48px;
+      }
+
+      .card-header {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+
+      .card-header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 600;
+        color: #1d2129;
+      }
+
+      .card-header p {
+        margin-top: 12px;
+        color: #4a5568;
+        font-size: 16px;
+      }
+
+      .upload-block {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 20px;
+        background: #f5f7ff;
+        border-radius: 12px;
+        border: 1px solid #e0e7ff;
+        margin-bottom: 32px;
+      }
+
+      .upload-label {
+        font-weight: 500;
+        color: #1d2129;
+        white-space: nowrap;
+      }
+
+      .upload-input {
+        display: none;
+      }
+
+      .upload-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 18px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #1677ff, #4096ff);
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        box-shadow: 0 6px 16px rgba(64, 150, 255, 0.28);
+      }
+
+      .upload-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(64, 150, 255, 0.32);
+      }
+
+      .upload-filename {
+        color: #475569;
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+      }
+
+      .section-title {
+        margin: 28px 0 12px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #1d2129;
+      }
+
+      .select {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid #d6e0f5;
+        padding: 12px 14px;
+        font-size: 15px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        background: #ffffff;
+        color: #111827;
+      }
+
+      .select:focus {
+        outline: none;
+        border-color: #1677ff;
+        box-shadow: 0 0 0 3px rgba(64, 150, 255, 0.18);
+      }
+
+      .select[multiple] {
+        min-height: 160px;
+      }
+
+      .hint-text {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 6px;
+      }
+
+      .action-area {
+        margin-top: 32px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .primary-btn {
+        min-width: 160px;
+        padding: 12px 18px;
+        border-radius: 999px;
+        border: none;
+        background: linear-gradient(135deg, #1677ff, #4096ff);
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 12px 30px rgba(22, 119, 255, 0.28);
+      }
+
+      .primary-btn:hover:not([disabled]) {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 36px rgba(22, 119, 255, 0.35);
+      }
+
+      .primary-btn[disabled] {
+        background: #dbe3f5;
+        color: #94a3b8;
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+
+      .result-card {
+        margin-top: 32px;
+        padding: 24px 28px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        background: #f8fafc;
+      }
+
+      .result-card h3 {
+        margin: 0 0 16px;
+        font-size: 18px;
+        color: #1d2129;
+      }
+
+      pre {
+        margin: 0;
+        padding: 20px;
+        background: #0f172a;
+        color: #e2e8f0;
+        border-radius: 12px;
+        overflow-x: auto;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      @media (max-width: 640px) {
+        .card {
+          padding: 28px 24px;
+        }
+
+        .upload-block {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .upload-filename {
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      const { useState } = React;
+
+      function App() {
+        const [columns, setColumns] = useState([]);
+        const [baselineColumn, setBaselineColumn] = useState("");
+        const [dataColumns, setDataColumns] = useState([]);
+        const [analysisResult, setAnalysisResult] = useState(null);
+        const [fileName, setFileName] = useState("未选择文件");
+        const [uploading, setUploading] = useState(false);
+        const [analyzing, setAnalyzing] = useState(false);
+
+        const handleFileUpload = async (event) => {
+          const file = event.target.files?.[0];
+          if (!file) return;
+
+          setFileName(file.name);
+          setUploading(true);
+          setAnalysisResult(null);
+
+          try {
+            // 使用 FormData 上传文件到后端
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 使用相对路径，Nginx 会代理到后端
+            const response = await fetch("/api/upload", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (!response.ok) {
+              throw new Error(`上传失败: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            // 设置列信息
+            setColumns(result.columns || []);
+            setBaselineColumn("");
+            setDataColumns([]);
+            
+            console.log("文件上传成功:", result);
+          } catch (error) {
+            console.error("上传文件出错:", error);
+            alert(`上传文件失败: ${error.message}`);
+            setColumns([]);
+          } finally {
+            setUploading(false);
+          }
+        };
+
+        const handleRunAnalysis = async () => {
+          if (!baselineColumn || dataColumns.length === 0) {
+            alert("请选择 Baseline 列和至少一个数据列");
+            return;
+          }
+
+          setAnalyzing(true);
+          setAnalysisResult(null);
+
+          try {
+            const response = await fetch("/api/analyze", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                baseline: baselineColumn,
+                dataColumns: dataColumns,
+                testType: "wilcoxon",
+                alpha: 0.05
+              }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `请求失败: ${response.status}`);
+            }
+
+            const result = await response.json();
+            setAnalysisResult(result);
+            console.log("分析结果:", result);
+          } catch (error) {
+            console.error("分析出错:", error);
+            setAnalysisResult({ error: error.message });
+          } finally {
+            setAnalyzing(false);
+          }
+        };
+
+        return (
+          <div className="app-shell">
+            <div className="card">
+              <div className="card-header">
+                <h1>CSV 数据显著性分析</h1>
+                <p>上传数据文件，选择基准列和对照列，即刻获取显著性分析结果。</p>
+              </div>
+
+              <div className="upload-block">
+                <span className="upload-label">上传 CSV 文件</span>
+                <label className="upload-button" htmlFor="csv-input">
+                  {uploading ? "上传中..." : "选择文件"}
+                </label>
+                <input
+                  id="csv-input"
+                  className="upload-input"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                />
+                <span className="upload-filename" title={fileName}>
+                  {fileName}
+                </span>
+              </div>
+
+              {columns.length > 0 ? (
+                <>
+                  <div>
+                    <h3 className="section-title">选择 Baseline 列</h3>
+                    <select
+                      className="select"
+                      value={baselineColumn}
+                      onChange={(event) => setBaselineColumn(event.target.value)}
+                    >
+                      <option value="">请选择</option>
+                      {columns.map((column) => (
+                        <option key={column} value={column}>
+                          {column}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="hint-text">用于作为对照组进行显著性比较的列。</div>
+                  </div>
+
+                  <div>
+                    <h3 className="section-title">选择参与分析的列</h3>
+                    <select
+                      className="select"
+                      multiple
+                      value={dataColumns}
+                      onChange={(event) =>
+                        setDataColumns(
+                          Array.from(event.target.selectedOptions, (option) => option.value)
+                        )
+                      }
+                    >
+                      {columns.map((column) => (
+                        <option key={column} value={column}>
+                          {column}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="hint-text">可多选，至少选择一列进行显著性检验。</div>
+                  </div>
+
+                  <div className="action-area">
+                    <button
+                      className="primary-btn"
+                      onClick={handleRunAnalysis}
+                      disabled={!baselineColumn || dataColumns.length === 0 || analyzing}
+                    >
+                      {analyzing ? "分析中..." : "运行分析"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="hint-text" style={{ textAlign: "center" }}>
+                  请先上传 CSV 文件以加载可选列。
+                </div>
+              )}
+
+              {analysisResult && (
+                <div className="result-card">
+                  <h3>分析结果</h3>
+                  <pre>{JSON.stringify(analysisResult, null, 2)}</pre>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>

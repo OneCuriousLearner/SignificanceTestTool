@@ -1,0 +1,135 @@
+#!/bin/bash
+
+# CSV 数据显著性分析工具 - 启动脚本
+
+echo "========================================"
+echo "  CSV 数据显著性分析工具"
+echo "========================================"
+echo ""
+
+# 检查是否安装了必要的依赖
+check_dependencies() {
+    echo "🔍 检查依赖..."
+    
+    # 检查 Python
+    if ! command -v python3 &> /dev/null; then
+        echo "❌ 错误: 未找到 python3，请先安装 Python 3"
+        exit 1
+    fi
+    
+    # 检查 uv
+    if ! command -v uv &> /dev/null; then
+        echo "❌ 错误: 未找到 uv，请先安装 UV"
+        exit 1
+    fi
+    
+    echo "✅ 依赖检查通过"
+}
+
+# 检查并释放端口
+check_and_free_ports() {
+    echo ""
+    echo "� 检查端口占用情况..."
+    
+    # 检查 3000 端口（前端）
+    FRONTEND_PID=$(lsof -ti:3000 2>/dev/null)
+    if [ ! -z "$FRONTEND_PID" ]; then
+        echo "⚠️  端口 3000 已被进程 $FRONTEND_PID 占用，正在释放..."
+        kill -9 $FRONTEND_PID 2>/dev/null
+        sleep 1
+        echo "✅ 端口 3000 已释放"
+    fi
+    
+    # 检查 5000 端口（后端）
+    BACKEND_PID=$(lsof -ti:5000 2>/dev/null)
+    if [ ! -z "$BACKEND_PID" ]; then
+        echo "⚠️  端口 5000 已被进程 $BACKEND_PID 占用，正在释放..."
+        kill -9 $BACKEND_PID 2>/dev/null
+        sleep 1
+        echo "✅ 端口 5000 已释放"
+    fi
+    
+    echo "✅ 端口检查完成"
+}
+
+# 启动前端服务
+start_frontend() {
+    echo ""
+    echo "🌐 启动前端服务..."
+    ./start_frontend.sh &
+    FRONTEND_PID=$!
+    echo "前端进程 PID: $FRONTEND_PID"
+    sleep 2
+}
+
+# 启动后端服务
+start_backend() {
+    echo ""
+    echo "🚀 启动后端服务..."
+    ./start_backend.sh &
+    BACKEND_PID=$!
+    echo "后端进程 PID: $BACKEND_PID"
+    sleep 2
+}
+
+# 显示访问信息
+show_info() {
+    echo ""
+    echo "========================================"
+    echo "  🎉 服务启动成功！"
+    echo "========================================"
+    echo ""
+    echo "📌 访问地址:"
+    echo "   前端: http://localhost:3000"
+    echo "   后端: http://localhost:5000"
+    echo ""
+    echo "📋 使用说明:"
+    echo "   1. 在浏览器中打开 http://localhost:3000"
+    echo "   2. 上传 CSV 文件"
+    echo "   3. 选择 Baseline 列和数据列"
+    echo "   4. 点击运行分析查看结果"
+    echo ""
+    echo "⚠️  停止服务: 按 Ctrl+C"
+    echo "========================================"
+    echo ""
+    echo "📊 查看日志:"
+    echo "   后端日志将在下方显示"
+    echo ""
+}
+
+# 清理函数
+cleanup() {
+    echo ""
+    echo "🛑 正在停止服务..."
+    
+    if [ ! -z "$BACKEND_PID" ]; then
+        kill $BACKEND_PID 2>/dev/null
+        echo "✅ 后端服务已停止"
+    fi
+    
+    if [ ! -z "$FRONTEND_PID" ]; then
+        kill $FRONTEND_PID 2>/dev/null
+        echo "✅ 前端服务已停止"
+    fi
+    
+    echo "👋 再见！"
+    exit 0
+}
+
+# 捕获 Ctrl+C
+trap cleanup SIGINT SIGTERM
+
+# 主流程
+main() {
+    check_dependencies
+    check_and_free_ports
+    start_frontend
+    start_backend
+    show_info
+    
+    # 等待后端进程（前端在后台运行）
+    wait $BACKEND_PID
+}
+
+# 运行主流程
+main
